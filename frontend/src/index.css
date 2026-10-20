@@ -9,11 +9,53 @@
   --color-line: #e4dccf;
   --color-copper: #c4622d;
   --color-moss: #1f6b4a;
+  --color-gold: #b8891c;
+  --color-sky: #2f6f9f;
+  --shadow-card: 0 1px 2px rgb(20 40 31 / 0.04), 0 12px 32px -20px rgb(20 40 31 / 0.25);
+}
+
+html {
+  scrollbar-color: #cfc5b3 transparent;
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: var(--color-paper);
+  background:
+    radial-gradient(1200px 500px at 90% -10%, rgb(196 98 45 / 0.08), transparent 60%),
+    var(--color-paper);
   color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input[type="date"] {
+  min-height: 2.5rem;
+}
+
+.recharts-tooltip-wrapper:focus {
+  outline: none;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  animation: rise 0.35s ease both;
 }

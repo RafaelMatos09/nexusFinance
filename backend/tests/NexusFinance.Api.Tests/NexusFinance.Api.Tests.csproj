@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\NexusFinance.Api\NexusFinance.Api.csproj" />
+    <ProjectReference Include="..\..\src\NexusFinance.Domain\NexusFinance.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -19,13 +19,7 @@ cd backend
 dotnet user-secrets set "ConnectionStrings:Default" "Host=SEU_HOST;Database=neondb;Username=SEU_USUARIO;Password=SUA_SENHA;SSL Mode=Require;Channel Binding=Require" --project src/NexusFinance.Api
 ```
 
-2. Aplique a migration inicial no banco já existente:
-
-```powershell
-psql "host=SEU_HOST dbname=neondb user=SEU_USUARIO sslmode=require" -f ../database/migrations/001_init.sql
-```
-
-3. Suba a API:
+2. Suba a API. Na primeira execução ela cria o schema `nexus` e aplica as migrations:
 
 ```powershell
 dotnet run --project src/NexusFinance.Api
@@ -33,7 +27,7 @@ dotnet run --project src/NexusFinance.Api
 
 A API fica em `http://localhost:5080`. Confira `http://localhost:5080/health`.
 
-4. Em outro terminal, suba o frontend:
+3. Em outro terminal, suba o frontend:
 
 ```powershell
 cd frontend
@@ -41,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Abra `http://localhost:5173`. A tela inicial consulta `/api/health` pelo proxy.
+Abra `http://localhost:5173`. A primeira tela é o login. Usuário demo: `demo@nexusfinance.dev` / `Demo@123`. O seed entra sozinho se ainda não houver clientes no schema `nexus`.
 
 ## Testes
 
@@ -72,7 +66,7 @@ A imagem sobe o frontend e a API no mesmo serviço. O React publicado chama `/ap
 Host=SEU_HOST;Database=neondb;Username=SEU_USUARIO;Password=SUA_SENHA;SSL Mode=Require;Channel Binding=Require
 ```
 
-3. Rode no Postgres o script `database/migrations/001_init.sql` antes do primeiro deploy saudável. O health check do Render é `GET /health` e só fica verde com o banco acessível.
+3. No primeiro start a API cria o schema `nexus` e aplica as migrations. O health check do Render é `GET /health` e só fica verde com o banco acessível.
 4. O Render define `PORT`. A API escuta `0.0.0.0` nessa porta.
 
 Para testar a imagem na máquina:

@@ -1,6 +1,14 @@
+using System.Text;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using NexusFinance.Api.Endpoints;
 using NexusFinance.Api.Exceptions;
+using NexusFinance.Api.Security;
+using NexusFinance.Application;
+using NexusFinance.Application.Abstractions;
 using NexusFinance.Infrastructure;
+using NexusFinance.Infrastructure.Persistence;
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
@@ -11,6 +19,31 @@ if (!string.IsNullOrWhiteSpace(port))
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure();
+builder.Services.AddApplication();
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwt.Issuer,
+            ValidAudience = jwt.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+builder.Services.AddAuthorization();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -53,8 +86,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("Frontend");
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseStaticFiles();
 app.MapHealthEndpoints();
+app.MapApiEndpoints();
 
 app.Map("/api/{**catchAll}", (HttpContext httpContext) =>
     Results.Problem(
@@ -74,6 +110,13 @@ var indexFile = Path.Combine(app.Environment.WebRootPath ?? string.Empty, "index
 if (!app.Environment.IsEnvironment("Testing") && File.Exists(indexFile))
 {
     app.MapFallbackToFile("index.html");
+}
+
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    await scope.ServiceProvider.GetRequiredService<MigrationRunner>().ApplyAsync(CancellationToken.None);
+    await scope.ServiceProvider.GetRequiredService<DemoSeeder>().SeedAsync(CancellationToken.None);
 }
 
 app.Run();
