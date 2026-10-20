@@ -1,0 +1,14 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+appsettings.Development.json
+
+frontend/node_modules/
+frontend/dist/
+backend/src/NexusFinance.Api/wwwroot/*
+!backend/src/NexusFinance.Api/wwwroot/.gitkeep
+
+.DS_Store
+Thumbs.db
